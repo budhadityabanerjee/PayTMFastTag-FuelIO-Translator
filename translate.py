@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-#suggestion -- use try/catch when importing libraries to elegantly fail when libraries
-#are not installed - and maybe give a helpful error message saying what is missing.
-#https://stackoverflow.com/questions/4527554/check-if-module-exists-if-not-install-it
-
-import argparse
-import sys
-import pandas as pd
+try:
+    import argparse
+    import sys
+    import pandas as pd
+except ImportError as e:
+    sys.exit("Error: " + str(e) + "\nPlease install this module and retry.\n")
 
 '''Basic setup stuff
 
