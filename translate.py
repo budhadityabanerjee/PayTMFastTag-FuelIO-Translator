@@ -3,7 +3,6 @@
 try:
     import argparse
     import sys
-    import io
     import pandas as pd
 except ImportError as e:
     sys.exit("Error: " + str(e) + "\nPlease install this module and retry.\n")
