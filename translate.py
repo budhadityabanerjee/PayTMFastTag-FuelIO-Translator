@@ -3,27 +3,43 @@
 try:
     import argparse
     import sys
+    import io
     import pandas as pd
 except ImportError as e:
     sys.exit("Error: " + str(e) + "\nPlease install this module and retry.\n")
 
 '''Basic setup stuff
 
-    Take 3 arguments:
+    Take 2 arguments:
 
     infile    : Input CSV file to be parsed
-    outfile   : Output CSV file to be generated
-    uid_start : Start value for unique id'''
+    outfile   : Output CSV file to be generated'''
 
 parser = argparse.ArgumentParser()
-parser.add_argument("infile", help="Input csv file to be parsed", type=str)
-parser.add_argument("outfile", help="Output csv file to be generated", type=str)
-parser.add_argument("uid_start", help="Unique ID start value", type=int)
+parser.add_argument("--infile", help="Input csv file to be parsed", type=str)
+parser.add_argument("--outfile", help="Output csv file to be generated", type=str)
 
 args = parser.parse_args()
 infile = args.infile
 outfile = args.outfile
-start_id = args.uid_start
+
+
+'''The data that will be extracted has to be inserted into the output file at the end of this:
+
+"## Costs"
+"CostTitle","Date","Odo","CostTypeID","Notes","Cost","flag","idR","read","RemindOdo","RemindDate","isTemplate","RepeatOdo","RepeatMonths","isIncome","UniqueId"
+"Fastag","2020-12-10 11:07","0","7","","35.0","0","0","1","0","2011-01-01","0","0","0","0","239"
+"Fastag","2020-12-11 12:30","0","7","","75.0","0","0","1","0","2011-01-01","0","0","0","0","240"
+"Car Wash","2020-11-30 09:30","20","4","","0.0","0","0","1","0","2011-01-01","0","0","0","0","241"
+"## FavStations"
+'''
+# Read and store file contents for future insertion
+outfile_text = []
+with open(outfile, 'r') as f:
+    for line in f:
+        outfile_text.append(line)
+
+# Column default values
 cost_title = "Fastag"
 odo = 0
 cost_type_id = 7
@@ -36,6 +52,9 @@ is_template = 0
 repeat_odo = 0
 repeat_months = 0
 is_income = 0
+
+# We need to get the value of UniqueId to continue in sequence
+start_id = int(outfile_text[outfile_text.index('"## FavStations"\n') - 1][-5:-2]) + 1
 
 
 '''The input file is expected to be of type:
@@ -94,12 +113,26 @@ df.insert(loc=13, column='RepeatMonths', value=repeat_months)
 df.insert(loc=14, column='isIncome', value=is_income)
 df.insert(loc=15, column='UniqueId', value=range(start_id, start_id + len(df)))
 
+# Create a list out of the dataframe
+data = df.astype(str).values.flatten().tolist()
+
+# List needs to be formatted with "", commas and newlines appropriately
+newlines = [val for val in range(15, len(data), 16)]
+
+for index in range(len(data)):
+  data[index] = '"' +  data[index] + '"'
+  if index in newlines:
+      data[index] += '\n'
+  else:
+      data[index] += ','
+
+# Now insert this into original text
+outfile_text[outfile_text.index('"## FavStations"\n'):outfile_text.index('"## FavStations"\n')] = data
+
 # Write to file
 try:
-    df.to_csv(outfile, index=False)
+    with open(outfile, "w") as f:
+        f.write(''.join([val for val in outfile_text]))
 except Exception as e:
     sys.exit(e)
-
-
-
 
