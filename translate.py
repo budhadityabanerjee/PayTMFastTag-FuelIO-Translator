@@ -77,7 +77,7 @@ except FileNotFoundError as e:
     Debit column must be renamed to Cost'''
 
 # Remove seconds and convert everything to timezone format
-df['Date'] = pd.to_datetime(df['Date'])
+df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y %H:%M:%S')
 df['Date'] = df['Date'].dt.strftime('%Y-%m-%d %H:%M')
 
 # Concatenate columns and remove old ones
@@ -111,6 +111,9 @@ df.insert(loc=12, column='RepeatOdo', value=repeat_odo)
 df.insert(loc=13, column='RepeatMonths', value=repeat_months)
 df.insert(loc=14, column='isIncome', value=is_income)
 df.insert(loc=15, column='UniqueId', value=range(start_id, start_id + len(df)))
+
+# Sort df by date
+df = df.sort_values(by='Date')
 
 # Create a list out of the dataframe
 data = df.astype(str).values.flatten().tolist()
